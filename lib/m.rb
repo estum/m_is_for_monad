@@ -8,6 +8,18 @@ require 'dry/monads/all'
 # So it expands monad methods in module functions and also includes all the monad constructors in the single place.
 module M
   include Dry::Monads
+  include List::Mixin
+
+  class << List
+    # @return [Proc]
+    def to_proc
+      @to_proc ||= method(:coerce).to_proc
+    end
+  end
+
+  # Prepared {Dry::Monads::Do} mixin for `call` instance method.
+  DoForCall ||=
+    Do.for(:call)
 
   # Creates a module that has two methods: `Success` and `Failure`.
   # `Success` is identical to {Result::Mixin::Constructors#Success} and Failure
@@ -45,6 +57,12 @@ module M
   def Result(error, **options)
     Dry::Monads::Result::Fixed[error, **options]
   end
+
+  # @see Dry::Monads::Do.call
+  define_method :Do, Do.method(:call)
+
+  # @see Dry::Monads::Do.bind
+  define_method :bind, Do.method(:bind)
 
   # @!scope class
 
